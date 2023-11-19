@@ -18,5 +18,3 @@ python3 main.py
 
 - Hikari (Dev)
 - Cendy (Artist)
-
-awa
