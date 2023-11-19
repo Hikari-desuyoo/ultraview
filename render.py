@@ -103,7 +103,7 @@ def render_ultrapoint_surface(ultrapoint, ux):
         cubes_rect.w = ultrapoint_rect.w
         cubes_rect.h = int((cubes_rect.w / cubes_surface.get_width()) * cubes_rect.h)
         cubes_rect.center = ultrapoint_rect.center
-        ultrapoint_surface.blit(pygame.transform.smoothscale(cubes_surface, cubes_rect.size), cubes_rect.topleft)
+        ultrapoint_surface.blit(pygame.transform.scale(cubes_surface, cubes_rect.size), cubes_rect.topleft)
 
     ultrapoint_surface.blit(front_frame, (0, 0))
 
@@ -139,4 +139,4 @@ def render(screen):
     ultrapoints_rect.h = int((ultrapoints_rect.w / ultrapoints_surface.get_width()) * ultrapoints_rect.h)
     ultrapoints_rect.center = screen_rect.center
 
-    screen.blit(pygame.transform.smoothscale(ultrapoints_surface, ultrapoints_rect.size), ultrapoints_rect.topleft)
+    screen.blit(pygame.transform.scale(ultrapoints_surface, ultrapoints_rect.size), ultrapoints_rect.topleft)
