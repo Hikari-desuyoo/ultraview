@@ -60,6 +60,12 @@ while running:
                 env.cursor.y += player_speed
             elif event.key == pygame.K_LSHIFT:
                 env.cursor.y -= player_speed
+            elif event.key == pygame.K_1:
+                env.current_material = "brick"
+            elif event.key == pygame.K_2:
+                env.current_material = "grass"
+            elif event.key == pygame.K_3:
+                env.current_material = "glass"
 
     render(screen)
 

@@ -5,7 +5,6 @@ from get_asset import get_asset
 black = (0, 0, 0)
 ultrapoint_padding = 100
 
-cube_size = get_asset('brick/+z.png').get_size()
 ultrapoint_size = get_asset('ultrapoint_frame/back.png').get_size()
 
 surface_cache = {
@@ -29,14 +28,14 @@ def pull_from_cache(surface_name):
     try:
         cached_surface = cache['existing'][cache['used']]
     except IndexError:
-        cached_surface = pygame.Surface(cache['size'])
+        cached_surface = pygame.Surface(cache['size'], pygame.SRCALPHA)
         cache['existing'].append(cached_surface)
 
     cache['used'] += 1
     cached_surface.fill((0,0,0,0))
     return cached_surface
 
-def cube_coordinate(cube_position, xyz_cursor):
+def cube_coordinate(cube_position, xyz_cursor, cube_size):
     render_distance = env.render_distance_xyz
     cube_w, cube_h = cube_size
     return (
@@ -44,7 +43,14 @@ def cube_coordinate(cube_position, xyz_cursor):
         (cube_h / 2) * (render_distance + cube_position.x / 2 + cube_position.z / 2 - cube_position.y - xyz_cursor.x / 2 - xyz_cursor.z / 2 + xyz_cursor.y)
     )
 
+last_render_distance = None
+scaled_materials = {}
+cursor_surface = None
+cursor_fg_surface = None
+
 def render_ultrapoint_surface(ultrapoint, ux):
+    global last_render_distance, scaled_materials, cursor_surface, cursor_fg_surface
+
     xyz_cursor = env.cursor.xyz_vector3()
     render_distance = env.render_distance_xyz
 
@@ -53,16 +59,14 @@ def render_ultrapoint_surface(ultrapoint, ux):
 
     ultrapoint_surface = pull_from_cache('ultrapoint')
     ultrapoint_surface.blit(back_frame, (0, 0))
+    cube_size = (ultrapoint_surface.get_width() / render_distance, ultrapoint_surface.get_height() / render_distance)
+
+    if last_render_distance != render_distance:
+        scaled_materials = {}
+        cursor_surface = pygame.transform.scale(get_asset('cursor.png'), cube_size)
+        cursor_fg_surface = pygame.transform.scale(get_asset('cursor_fg.png'), cube_size)
 
     cursor_need_draw = ux == env.cursor.ux
-
-    cubes_surface = None
-    if cursor_need_draw:
-        cube_w, cube_h = cube_size
-        cubes_surface = pygame.Surface((
-            (cube_w * render_distance),
-            (((cube_h) * render_distance) + cube_h),
-        ), pygame.SRCALPHA)
 
     for cube in ultrapoint.cubes:
         if not (
@@ -73,39 +77,37 @@ def render_ultrapoint_surface(ultrapoint, ux):
 
         cube_image = get_asset(f"{cube.material}/+z.png")
 
-        if not cubes_surface:
-            cube_w, cube_h = cube_image.get_size()
-            cubes_surface = pygame.Surface((
-                (cube_w * render_distance),
-                (((cube_h) * render_distance) + cube_h),
-            ), pygame.SRCALPHA)
+        scaled_cube_image = scaled_materials.get(cube.material)
+        if not scaled_cube_image:
+            scaled_cube_image = scaled_materials[cube.material] = pygame.transform.scale(cube_image, cube_size)
 
         if cursor_need_draw and (cube.position.z > xyz_cursor.z or cube.position.y > xyz_cursor.y or cube.position.x > xyz_cursor.x):
-            cubes_surface.blit(cursor_surface, cube_coordinate(xyz_cursor, xyz_cursor))
+            ultrapoint_surface.blit(cursor_surface, cube_coordinate(xyz_cursor, xyz_cursor, cube_size))
             cursor_need_draw = False
 
-        cubes_surface.blit(cube_image, cube_coordinate(cube.position, xyz_cursor))
+        ultrapoint_surface.blit(scaled_cube_image, cube_coordinate(cube.position, xyz_cursor, cube_size))
 
         if cursor_need_draw and cube.position == xyz_cursor:
-            cubes_surface.blit(cursor_surface, cube_coordinate(xyz_cursor, xyz_cursor))
+            ultrapoint_surface.blit(cursor_surface, cube_coordinate(xyz_cursor, xyz_cursor, cube_size))
             cursor_need_draw = False
 
     if cursor_need_draw:
-        cubes_surface.blit(cursor_surface, cube_coordinate(xyz_cursor, xyz_cursor))
+        ultrapoint_surface.blit(cursor_surface, cube_coordinate(xyz_cursor, xyz_cursor, cube_size))
         cursor_need_draw = False
 
     if ux == env.cursor.ux:
-        cubes_surface.blit(cursor_fg_surface, cube_coordinate(xyz_cursor, xyz_cursor))
+        ultrapoint_surface.blit(cursor_fg_surface, cube_coordinate(xyz_cursor, xyz_cursor, cube_size))
 
-    if cubes_surface:
-        ultrapoint_rect = ultrapoint_surface.get_rect()
-        cubes_rect = cubes_surface.get_rect()
-        cubes_rect.w = ultrapoint_rect.w
-        cubes_rect.h = int((cubes_rect.w / cubes_surface.get_width()) * cubes_rect.h)
-        cubes_rect.center = ultrapoint_rect.center
-        ultrapoint_surface.blit(pygame.transform.scale(cubes_surface, cubes_rect.size), cubes_rect.topleft)
+    ultrapoint_rect = ultrapoint_surface.get_rect()
+    cubes_rect = ultrapoint_surface.get_rect()
+    cubes_rect.w = ultrapoint_rect.w
+    cubes_rect.h = int((cubes_rect.w / ultrapoint_surface.get_width()) * cubes_rect.h)
+    cubes_rect.center = ultrapoint_rect.center
+    ultrapoint_surface.blit(ultrapoint_surface, cubes_rect.topleft)
 
     ultrapoint_surface.blit(front_frame, (0, 0))
+
+    last_render_distance = render_distance
 
     return ultrapoint_surface
 
