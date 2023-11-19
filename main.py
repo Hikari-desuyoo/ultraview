@@ -34,9 +34,9 @@ while running:
             elif event.button == 3:
                 env.get_ultrapoint(env.cursor.ux).remove_cube(env.cursor.xyz_vector3())
             elif event.button == 4:
-                if ctrl:
+                if ctrl and env.render_distance_ux > 1:
                     env.render_distance_ux -= 1
-                else:
+                elif env.render_distance_xyz > 1:
                     env.render_distance_xyz -= 1
             elif event.button == 5:
                 if ctrl:
