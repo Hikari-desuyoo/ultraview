@@ -1,7 +1,6 @@
 import pygame
 import environment as env
 from get_asset import get_asset
-from cube import Cube # remove after testing
 
 black = (0, 0, 0)
 ultrapoint_padding = 100
