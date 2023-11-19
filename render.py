@@ -55,7 +55,6 @@ def render_ultrapoint_surface(ultrapoint, ux):
     render_distance = env.render_distance_xyz
 
     back_frame = get_asset('ultrapoint_frame/back.png')
-    front_frame = get_asset('ultrapoint_frame/front.png')
 
     ultrapoint_surface = pull_from_cache('ultrapoint')
     ultrapoint_surface.blit(back_frame, (0, 0))
@@ -104,8 +103,6 @@ def render_ultrapoint_surface(ultrapoint, ux):
     cubes_rect.h = int((cubes_rect.w / ultrapoint_surface.get_width()) * cubes_rect.h)
     cubes_rect.center = ultrapoint_rect.center
     ultrapoint_surface.blit(ultrapoint_surface, cubes_rect.topleft)
-
-    ultrapoint_surface.blit(front_frame, (0, 0))
 
     last_render_distance = render_distance
 
